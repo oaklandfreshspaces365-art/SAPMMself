@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP Material Planner — Self-Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --indigo:  #312E81; --indigo2: #4338CA; --indigo3: #6366F1;
+  --teal:    #0D9488; --teal2:   #14B8A6;
+  --sky:     #EEF2FF; --bg:      #F8F9FF;
+  --white:   #FFFFFF; --border:  #E0E7FF; --border2: #C7D2FE;
+  --text:    #1E1B4B; --text2:   #4338CA; --text3:   #6B7280; --text4: #9CA3AF;
+  --r1c:#FEE2E2;--r1b:#EF4444;--r1t:#991B1B;
+  --r2c:#FFF7ED;--r2b:#F97316;--r2t:#9A3412;
+  --r3c:#EFF6FF;--r3b:#3B82F6;--r3t:#1E40AF;
+  --r4c:#ECFDF5;--r4b:#10B981;--r4t:#065F46;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+.progress-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:#E0E7FF;z-index:200;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--indigo2),var(--teal));transition:width .5s ease;border-radius:0 2px 2px 0;}
+.hero{background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo2) 60%,var(--indigo3) 100%);padding:48px 24px 56px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");}
+.hero-badge{display:inline-block;padding:5px 14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:16px;}
+.hero h1{font-family:'Nunito',sans-serif;font-size:clamp(22px,5vw,32px);font-weight:800;color:white;line-height:1.2;margin-bottom:10px;}
+.hero p{font-size:14px;color:rgba(255,255,255,.75);max-width:500px;margin:0 auto 20px;line-height:1.6;}
+.step-dots{display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+.step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .3s;}
+.step-dot.active{background:white;width:24px;border-radius:4px;}
+.step-dot.done{background:var(--teal2);}
+.main{max-width:720px;margin:0 auto;padding:28px 20px 80px;}
+.section-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.section-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.section-title{font-family:'Nunito',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
+.section-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.section-count{margin-left:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--sky);color:var(--indigo2);white-space:nowrap;}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 4px rgba(49,46,129,.06);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-full{grid-column:1/-1;}
+.form-group label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
+.form-group label .req{color:#EF4444;margin-left:2px;}
+.form-group input,.form-group select{width:100%;padding:10px 13px;border:1.5px solid var(--border2);border-radius:8px;font-family:'Nunito Sans',sans-serif;font-size:13px;color:var(--text);background:white;transition:border-color .15s,box-shadow .15s;appearance:none;}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--indigo2);box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+.seniority-pill{display:inline-block;margin-top:7px;padding:4px 10px;background:var(--sky);border-radius:20px;font-size:11px;font-weight:700;color:var(--indigo2);display:none;}
+.q-card{background:white;border:1.5px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;}
+.q-card.answered{border-color:var(--teal2);box-shadow:0 0 0 3px rgba(20,184,166,.08);}
+.q-num-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo3);margin-bottom:6px;}
+.q-label{font-size:14px;font-weight:600;color:var(--text);line-height:1.55;margin-bottom:10px;}
+.q-ref{font-size:11px;color:var(--text4);margin-bottom:12px;font-style:italic;line-height:1.5;}
+.rating-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.rating-btn{position:relative;cursor:pointer;}
+.rating-btn input[type="radio"]{position:absolute;opacity:0;width:0;height:0;}
+.rating-face{border:1.5px solid #E5E7EB;border-radius:8px;padding:10px 6px;text-align:center;transition:all .15s;background:#FAFAFA;}
+.rating-face:hover{border-color:var(--indigo3);background:var(--sky);transform:translateY(-1px);}
+.rating-btn input:checked+.rating-face{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.rating-btn[data-v="1"] input:checked+.rating-face{border-color:var(--r1b);background:var(--r1c);}
+.rating-btn[data-v="2"] input:checked+.rating-face{border-color:var(--r2b);background:var(--r2c);}
+.rating-btn[data-v="3"] input:checked+.rating-face{border-color:var(--r3b);background:var(--r3c);}
+.rating-btn[data-v="4"] input:checked+.rating-face{border-color:var(--r4b);background:var(--r4c);}
+.rating-num{font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;color:#D1D5DB;line-height:1;}
+.rating-btn[data-v="1"] input:checked~.rating-face .rating-num{color:var(--r1b);}
+.rating-btn[data-v="2"] input:checked~.rating-face .rating-num{color:var(--r2b);}
+.rating-btn[data-v="3"] input:checked~.rating-face .rating-num{color:var(--r3b);}
+.rating-btn[data-v="4"] input:checked~.rating-face .rating-num{color:var(--r4b);}
+.rating-txt{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-top:4px;line-height:1.3;}
+.rating-btn[data-v="1"] input:checked~.rating-face .rating-txt{color:var(--r1t);}
+.rating-btn[data-v="2"] input:checked~.rating-face .rating-txt{color:var(--r2t);}
+.rating-btn[data-v="3"] input:checked~.rating-face .rating-txt{color:var(--r3t);}
+.rating-btn[data-v="4"] input:checked~.rating-face .rating-txt{color:var(--r4t);}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:var(--sky);border-radius:10px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.result-hero{background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo2) 100%);border-radius:16px;padding:28px 24px;text-align:center;margin-bottom:20px;color:white;}
+.result-score{font-family:'Nunito',sans-serif;font-size:64px;font-weight:800;line-height:1;}
+.result-label{font-size:13px;color:rgba(255,255,255,.75);margin-top:4px;letter-spacing:.05em;}
+.result-tier{display:inline-block;margin-top:14px;padding:6px 20px;background:rgba(255,255,255,.15);border-radius:20px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;letter-spacing:.05em;}
+.mod-result-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.mod-result-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.mod-result-name{flex:1;}
+.mod-result-name strong{font-size:13px;font-weight:700;color:var(--text);}
+.mod-result-name span{display:block;font-size:11px;color:var(--text3);margin-top:1px;}
+.mod-bar-bg{flex:1;height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden;}
+.mod-bar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+.mod-result-pct{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;min-width:44px;text-align:right;}
+.export-box{background:linear-gradient(135deg,#ECFDF5 0%,#EFF6FF 100%);border:1.5px solid var(--teal2);border-radius:14px;padding:24px;text-align:center;margin-bottom:20px;}
+.export-box h3{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:var(--indigo);margin-bottom:6px;}
+.export-box p{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:16px;}
+.email-hint{padding:10px 14px;background:white;border-radius:8px;font-size:12px;color:var(--indigo2);margin-bottom:16px;border:1px solid var(--border2);}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s;}
+.btn-primary{background:var(--indigo2);color:white;}
+.btn-primary:hover{background:var(--indigo);transform:translateY(-1px);box-shadow:0 4px 16px rgba(67,56,202,.3);}
+.btn-teal{background:var(--teal);color:white;}
+.btn-teal:hover{background:#0F766E;transform:translateY(-1px);box-shadow:0 4px 16px rgba(13,148,136,.3);}
+.btn-outline{background:white;color:var(--indigo2);border:1.5px solid var(--border2);}
+.btn-outline:hover{background:var(--sky);}
+.btn-ghost{background:transparent;color:var(--text3);}
+.nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1.5px solid var(--border);}
+.nav-right{display:flex;gap:10px;align-items:center;}
+.info-box{padding:12px 14px;border-radius:8px;border-left:3px solid;font-size:12px;line-height:1.6;margin-bottom:16px;}
+.info-box.blue{background:#EFF6FF;border-color:#3B82F6;color:#1E40AF;}
+.info-box.green{background:#ECFDF5;border-color:#10B981;color:#065F46;}
+.step-page{display:none;animation:fadeIn .25s ease;}
+.step-page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+canvas{display:block;margin:0 auto;}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr;}.rating-btns{grid-template-columns:1fr 1fr;}.hero{padding:32px 16px 40px;}}
+@media print{.progress-wrap,.nav-bar,.export-box,.btn,.folder-bar{display:none !important;}.step-page{display:block !important;}}
+
+
+</style>
+</head>
+<body>
+
+<div class="progress-wrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+
+
+<div class="hero" id="heroArea">
+  <div class="hero-badge">Americas Region · Material Planner</div>
+  <h1>SAP Competency<br>Self-Assessment</h1>
+  <p>Rate your confidence honestly across 4 modules and 36 topics. Your answers build your personal training plan — takes about 20 minutes.</p>
+  <div class="step-dots" id="stepDots">
+    <div class="step-dot active"></div>
+    <div class="step-dot"></div>
+    <div class="step-dot"></div>
+    <div class="step-dot"></div>
+    <div class="step-dot"></div>
+    <div class="step-dot"></div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- STEP 0: PROFILE -->
+<div class="step-page active" id="step-0">
+  <div style="margin-bottom:20px">
+    <div style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;color:var(--indigo);margin-bottom:4px">Welcome 👋</div>
+    <div style="font-size:13px;color:var(--text3);line-height:1.6">Tell us a little about yourself before we begin. This takes about 2 minutes.</div>
+  </div>
+  <div class="info-box blue"><strong>Honest answers matter.</strong> There are no right or wrong answers. Your self-assessment is used to build your personal training plan — the more accurate, the more useful it will be for you.</div>
+  <div class="card">
+    <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo2);margin-bottom:14px">Your Details</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Full Name <span class="req">*</span></label><input type="text" id="sa_name" placeholder="First Last"></div>
+      <div class="form-group"><label>Employee ID</label><input type="text" id="sa_empid" placeholder="e.g. EMP-00421"></div>
+      <div class="form-group">
+        <label>Plant <span class="req">*</span></label>
+        <select id="sa_plant">
+          <option value="">— Select your plant —</option>
+          <optgroup label="🇲🇽 Mexico">
+            <option value="1025|Benito Juarez|MX|QUB">1025 — Benito Juarez (QUB)</option>
+            <option value="1033|Puebla|MX|PUE">1033 — Puebla (PUE)</option>
+            <option value="10B2|Aeropuerto|MX|QUA">10B2 — Aeropuerto (QUA)</option>
+            <option value="1125|El Marques|MX|QUE">1125 — El Marques (QUE)</option>
+          </optgroup>
+          <optgroup label="🇧🇷 Brazil">
+            <option value="1031|Curitiba|BR|CUR">1031 — Curitiba (CUR)</option>
+            <option value="1431|Goiana|BR|GOI">1431 — Goiana (GOI)</option>
+            <option value="1531|Sao Paulo|BR|SAO">1531 — Sao Paulo (SAO)</option>
+          </optgroup>
+          <optgroup label="🇨🇦 Canada">
+            <option value="1046|London|CA|LON">1046 — London (LON)</option>
+          </optgroup>
+          <optgroup label="🇺🇸 United States">
+            <option value="1047|Tuscaloosa|US|TUS">1047 — Tuscaloosa (TUS)</option>
+            <option value="1070|Jefferson|US|JEF">1070 — Jefferson (JEF)</option>
+            <option value="1276|New Boston|US|NBO">1276 — New Boston (NBO)</option>
+            <option value="1142|Spartanburg|US|SPA">1142 — Spartanburg (SPA)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Preferred Language</label>
+        <select id="sa_lang"><option value="English">English</option><option value="Spanish">Spanish</option><option value="Portuguese">Portuguese</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo2);margin-bottom:14px">Your Role</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Role Level <span class="req">*</span></label>
+        <select id="sa_role"><option value="">— Select —</option><option value="Material Planner">Material Planner</option><option value="Material Planner Co-ordinator">Material Planner Co-ordinator</option><option value="Master Scheduler">Master Scheduler</option></select>
+      </div>
+      <div class="form-group">
+        <label>Hire Date <span class="req">*</span></label>
+        <input type="date" id="sa_hire" onchange="calcSen()">
+        <div class="seniority-pill" id="sa_sen_pill"></div>
+      </div>
+      <div class="form-group">
+        <label>Primary Module / Focus</label>
+        <select id="sa_focus"><option value="">— Select —</option><option value="SD">SD — Sales &amp; Distribution</option><option value="PP">PP — Production Planning</option><option value="MM">MM — Materials Management</option><option value="Mixed SD+PP">Mixed (SD + PP)</option><option value="Mixed PP+MM">Mixed (PP + MM)</option><option value="All modules">All Modules</option></select>
+      </div>
+      <div class="form-group">
+        <label>Assigned Project</label>
+        <input type="text" id="sa_proj" placeholder="e.g. MPC/MP Competency — or N/A">
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <div></div>
+    <button class="btn btn-primary" onclick="goTo(1)">Start Assessment →</button>
+  </div>
+</div>
+
+<!-- MODULE STEPS INJECTED HERE -->
+<div id="sa-module-steps"></div>
+
+<!-- STEP 5: RESULTS -->
+<div class="step-page" id="step-5">
+  <div style="font-family:'Nunito',sans-serif;font-size:28px;font-weight:800;color:var(--indigo);margin-bottom:4px;text-align:center">Assessment Complete! 🎉</div>
+  <div style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:24px">Here's your personalised competency snapshot. Download your results file and send it to your regional coordinator.</div>
+  <div class="result-hero">
+    <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:8px" id="res_planner_line">—</div>
+    <div class="result-score" id="res_overall_pct">—%</div>
+    <div class="result-label">Overall Confidence Score</div>
+    <div class="result-tier" id="res_tier">—</div>
+  </div>
+  <div id="res_module_rows" style="margin-bottom:20px"></div>
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo2);margin-bottom:14px">Competency Radar</div>
+    <canvas id="sa_radar" width="280" height="280"></canvas>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo2);margin-bottom:12px">Your Priority Development Areas</div>
+    <div id="res_dev_list"></div>
+  </div>
+  <div class="export-box">
+    <h3>📤 Share Your Results with Your Coordinator</h3>
+    <p>Download your results file and email it to your regional coordinator. They will import it directly — no re-entry needed.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;text-align:left">
+      <div style="background:white;border:1px solid var(--border2);border-radius:8px;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--indigo2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">📋 JSON File</div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.5">Recommended. Your coordinator imports this directly into the Americas Assessment tool — all your details auto-fill.</div>
+      </div>
+      <div style="background:white;border:1px solid var(--border2);border-radius:8px;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--indigo2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">📊 CSV File</div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.5">For Excel tracking. Paste directly into the Americas master tracker spreadsheet — one row per planner.</div>
+      </div>
+    </div>
+    <div class="email-hint" id="exportIdDisplay">🔑 Your Assessment ID: <strong id="displayAssessId">generating…</strong> &nbsp;·&nbsp; Include this in your email subject line so your coordinator can link your records.</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-teal" onclick="exportSA_JSON()">⬇ Download JSON (Import-Ready)</button>
+      <button class="btn btn-primary" onclick="exportSA_CSV()">⬇ Download CSV (Excel Tracker)</button>
+      <button class="btn btn-outline" onclick="window.print()">🖨 Print / PDF</button>
+    </div>
+  </div>
+  <div class="info-box green"><strong>What happens next?</strong> Your coordinator will review results across the Americas region and will reach out with a personalised training plan within 2 weeks.</div>
+  <div class="nav-bar">
+    <button class="btn btn-ghost" onclick="goTo(4)">← Review Answers</button>
+    <button class="btn btn-outline" onclick="window.location.reload()">Start Over</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+const SA_MODULES = [
+  // ── MODULE 1: SALES & DISTRIBUTION ────────────────────────────
+  {
+    id:'SD', label:'Sales & Distribution', color:'#1D4ED8', bgColor:'#EFF6FF', icon:'🚚',
+    intro:'Rate your confidence managing customer demand, scheduling agreements, deliveries, and outbound logistics in SAP.',
+    questions:[
+      {id:'SD1', text:'I can locate all active part numbers we supply to a customer, navigate the scheduling agreement, and explain the key fields (customer, material, route, etc.).', ref:'Customer master, scheduling agreement, part number lookup'},
+      {id:'SD2', text:'I understand how to configure customer demand — including weekly-to-daily splits, route setup in the SD scheduling agreement, and EDI release schedules.', ref:'Demand configuration, route function, release frequency setup'},
+      {id:'SD3', text:'I can verify that a customer\'s ASN was transmitted and acknowledged, run the Incompletion Log, and know what to check before a delivery is generated.', ref:'ASN acknowledgement check, incompletion log, pre-delivery checklist'},
+      {id:'SD4', text:'I can explain and correctly apply the key SAP movement types (101-102, 131-132, 261-262, 601-602, 343-344, 701-702, 311, 201-202) and know how to delete serial numbers from a delivery.', ref:'Movement types in SAP MM/SD, serial number management'},
+      {id:'SD5', text:'I can maintain message outputs (HU labels, BOL, delivery note, invoice, ASN), view delivery output logs, and modify SCAC carrier codes assigned by a customer.', ref:'Output condition management, HU/delivery output, SCAC code modification'},
+      {id:'SD6', text:'I understand discontinuation control (setup and use cases), how to process non-EDI special orders, and can explain a pass-through process. I can also find overseas container status and manage bottleneck situations.', ref:'Discontinuation control, special order processing, pass-through, container tracking, bottleneck management'},
+      {id:'SD7', text:'I can read the production cockpit, compare customer releases, view open SD scheduling agreements, and reassign a handling unit to a sales document or delivery.', ref:'Production cockpit, release comparison, open scheduling agreements, HU reassignment'},
+      {id:'SD8', text:'I understand when procurement type X is used — I can give a real example from my plant and explain the supply chain impact.', ref:'Procurement type X — in-house and external procurement combined, use cases'},
+    ]
+  },
+  // ── MODULE 2: PRODUCTION PLANNING ─────────────────────────────
+  {
+    id:'PP', label:'Production Planning', color:'#065F46', bgColor:'#ECFDF5', icon:'🏭',
+    intro:'Rate your confidence with MRP, master data, BOM management, exception handling, backflush, and the full production cycle.',
+    questions:[
+      {id:'PP1', text:'I know the SAP master data settings for overseas vs. local components, can find tariff codes from a part number, and understand the correct goods receipt process based on incoterm (e.g. DAP at Plant vs. FCA).', ref:'Material master overseas/local settings, tariff code lookup, GR process by incoterm'},
+      {id:'PP2', text:'I can navigate MRP View 4 for subassemblies, explain production versions, describe what a Bill of Material contains, and compare two different BOMs.', ref:'MRP view 4, production version, BOM display (CS03), BOM comparison'},
+      {id:'PP3', text:'I can check stock for a single component and run a mass stock report for all my components, find historical material movement postings, and read component coverage in MD04.', ref:'MMBE, MB52, MB51 stock/movement reporting, MD04 coverage analysis'},
+      {id:'PP4', text:'I understand dependent vs. independent requirements in MD04, the difference between GR and AV views, the correct settings for MD02, how to detect and correct purchase requisitions, and where to check exception messages.', ref:'MD04 views (GR/AV), MD02 settings, purchase requisitions, exception messages'},
+      {id:'PP5', text:'I can plan my production line for the following week and explain the setups involved. I know when to use MFBF versus MFHU and the operational difference between them.', ref:'Production line planning, MFBF (repetitive backflush), MFHU (HU-based backflush)'},
+      {id:'PP6', text:'I can reverse a serialised handling unit, find the historical data of an HU, generate a list of all finish goods HUs and confirm their status, assign packaging instructions to a customer, confirm backflush component consumption, and resolve MF47/COGI errors.', ref:'HU reversal, HUMO history, MFHU, packaging instructions, COGI/MF47 resolution'},
+      {id:'PP7', text:'I can create a delivery and add it to a shipment, show today\'s shipping schedule, manage KLT/GLT labels, use Fiori for premium freight and SOFA, and check end-of-production dates for items in my portfolio.', ref:'Delivery/shipment creation, shipping schedule, label management, Fiori apps, EOP date lookup'},
+      {id:'PP8', text:'I understand the preconditions required before a component can be set to obsolete, and I know how to find the end-of-production date and manage the transition in SAP.', ref:'Obsolete component preconditions, EOP management, material lifecycle'},
+      {id:'PP9', text:'I can check subcontractor stock in SAP, show the weekly demand for my production line, and explain how to determine the number of shifts or pieces needed to meet customer requirements.', ref:'Subcontractor stock, weekly demand display, shift/capacity planning basics'},
+      {id:'PP10', text:'I can resolve a quantity discrepancy between what a customer received and what we shipped — I know the SAP process to investigate, document, and correct the difference.', ref:'Quantity discrepancy resolution, SAP GR/GI reconciliation, customer dispute process'},
+      {id:'PP11', text:'I understand how to set up auto demand planning, when it should be used, and — equally important — when it should NOT be used and the risks of leaving it active incorrectly.', ref:'Auto demand planning setup, activation criteria, risks of incorrect configuration'},
+      {id:'PP12', text:'I know how to create a component bank in SAP and understand when this is required in the production process.', ref:'Component bank creation, when bank is needed vs. standard stock'},
+    ]
+  },
+  // ── MODULE 3: MATERIALS MANAGEMENT ────────────────────────────
+  {
+    id:'MM', label:'Materials Management', color:'#5B21B6', bgColor:'#F5F3FF', icon:'📦',
+    intro:'Rate your confidence with supplier management, purchasing, release schedules, stock reporting, and inbound logistics.',
+    questions:[
+      {id:'MM1', text:'I know where to see where a component is used (where-used list), how to find a supplier\'s incoterm in SAP, and how to check contract status and whether a release has been sent in YMMZKLO.', ref:'Where-used list (CS15), vendor master incoterm, YMMZKLO contract and release overview'},
+      {id:'MM2', text:'I can set up the release transmission frequency to a supplier, understand and maintain the source list, manage unloading points in MM scheduling agreements, and activate ASN for a supplier.', ref:'Release frequency setup, source list (ME01), unloading point maintenance, ASN activation'},
+      {id:'MM3', text:'I can compare two different supplier releases, print supplier releases, and manually generate a single or multiple releases to a supplier — including using the MD04 shortcut.', ref:'Release comparison, release printing, manual release generation, MD04 shortcut'},
+      {id:'MM4', text:'I can run a purchasing requisition report by MRPC, get a BOM list for one or more finished goods, check whether I have enough stock to produce a certain quantity, run a backlog report against my last release, and use YLOLATIN reports.', ref:'PR list by MRPC, BOM report, stock sufficiency check, backlog report, YLOLATIN'},
+      {id:'MM5', text:'I know what is required when a supplier cannot pack a material in Supplier Workplace, can list at least 3 SAP transactions where I can see supplier ASNs, explain the coverage of a part number in MD04, and reprint a customer label after modifying its layout.', ref:'Supplier Workplace packing requirements, ASN transactions, MD04 coverage, label layout and reprint'},
+      {id:'MM6', text:'I can check stock levels as of a specific past date in SAP — I know the transaction to use and how to interpret the results for inventory reconciliation.', ref:'MB5B historical stock report, past-date stock query, inventory reconciliation'},
+    ]
+  },
+  // ── MODULE 4: QM, SAP BASICS & SUPPLY CHAIN KNOWLEDGE ────────
+  {
+    id:'QM_SAP', label:'QM, SAP Basics & Supply Chain', color:'#92400E', bgColor:'#FFFBEB', icon:'⚙️',
+    intro:'Rate your confidence with quality processes, SAP fundamentals, and the broader supply chain knowledge a material planner needs beyond the system.',
+    questions:[
+      {id:'QS1', text:'I know how to request access to SAP transactions and how to look up what transactions a colleague has access to.', ref:'SAP access request process, role/authorisation lookup'},
+      {id:'QS2', text:'I can generate a Delivery Instruction (L1) to a supplier in SAP and know where to do it. I understand when and why to use transaction MM06.', ref:'L1 / delivery instruction to supplier, MM06 (flag material for deletion)'},
+      {id:'QS3', text:'I can locate and manage my daily SAP task list and know which tasks I am required to complete each day as a material planner.', ref:'Daily task list in SAP, planner daily workflow'},
+      {id:'QS4', text:'I understand the GECOS quality process — the full sequence of steps, what triggers it, and exactly at which step the material planner\'s involvement begins.', ref:'GECOS process flow, planner handoff point in quality management'},
+      {id:'QS5', text:'I understand key supply chain KPIs that affect my plant — including OTIF (On-Time-In-Full), Days of Supply (DOS), inventory turns, and fill rate — and I know how my daily decisions impact them.', ref:'OTIF, DOS, inventory turns, fill rate — planner impact on KPIs'},
+      {id:'QS6', text:'I know when and how to escalate a supply risk — including the premium freight authorisation process, the difference between a SCAR and a corrective action, and how to communicate supply risks to production and to the customer.', ref:'Escalation process, premium freight authorisation, SCAR vs corrective action, supply risk communication'},
+      {id:'QS7', text:'I understand the difference between push and pull replenishment, can explain how kanban or JIT signals work at my plant, and know when each approach is appropriate.', ref:'Push vs pull, kanban/JIT signals, replenishment strategy, min-max'},
+      {id:'QS8', text:'I understand the S&OP (Sales & Operations Planning) process — the monthly cadence, who participates at each stage, and what the material planner\'s input should be to demand and supply review.', ref:'S&OP cadence, demand review, supply review, planner role in monthly process'},
+      {id:'QS9', text:'When I encounter a recurring problem (e.g. repeated supplier shortfalls, repeated COGI errors, repeated premium freight), I know how to apply a structured root cause analysis approach rather than fixing it each time as a one-off.', ref:'Root cause analysis, 5-Why, 8D basics, problem recurrence prevention'},
+      {id:'QS10', text:'I understand incoterms (EXW, FCA, DAP, DDP, etc.) well enough to know the correct goods receipt point and risk transfer for each supplier in my portfolio, and I can explain the implications to my team.', ref:'Incoterms — EXW, FCA, DAP, DDP, FOB — GR point, risk transfer, supplier setup'},
+    ]
+  }
+];
+
+const RATING_LABELS=['Not Yet','Learning','Proficient','Expert'];
+const TIER_LABELS={r:'Needs Training',d:'Developing',p:'Proficient',e:'Expert'};
+const TIER_COLORS={r:'#991B1B',d:'#9A3412',p:'#1E40AF',e:'#065F46'};
+
+const sa_answers={};
+let currentSAStep=0;
+const TOTAL_STEPS=6;
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildModuleSteps();
+  updateProgress(0);
+  restoreFromLocalStorage();
+});
+
+function saveToLocalStorage(){
+  try{
+    const profile={
+      sa_name:document.getElementById('sa_name').value,
+      sa_empid:document.getElementById('sa_empid').value,
+      sa_plant:document.getElementById('sa_plant').value,
+      sa_lang:document.getElementById('sa_lang').value,
+      sa_role:document.getElementById('sa_role').value,
+      sa_hire:document.getElementById('sa_hire').value,
+      sa_focus:document.getElementById('sa_focus').value,
+      sa_proj:document.getElementById('sa_proj').value
+    };
+    localStorage.setItem('sa_profile',JSON.stringify(profile));
+    localStorage.setItem('sa_answers',JSON.stringify(sa_answers));
+  }catch(e){}
+}
+
+function restoreFromLocalStorage(){
+  try{
+    const profile=JSON.parse(localStorage.getItem('sa_profile')||'{}');
+    Object.entries(profile).forEach(([id,val])=>{
+      const el=document.getElementById(id);
+      if(el&&val) el.value=val;
+    });
+    if(profile.sa_hire) calcSen();
+    const saved=JSON.parse(localStorage.getItem('sa_answers')||'{}');
+    Object.entries(saved).forEach(([qId,val])=>{
+      sa_answers[qId]=val;
+      const radio=document.querySelector(`input[name="q_${qId}"][value="${val}"]`);
+      if(radio){ radio.checked=true; const card=document.getElementById(`qcard_${qId}`); if(card) card.classList.add('answered'); }
+    });
+    updateAllModProgress();
+    if(Object.keys(saved).length>0){
+      showRestoreBanner(Object.keys(saved).length);
+    }
+  }catch(e){}
+}
+
+function showRestoreBanner(count){
+  const banner=document.createElement('div');
+  banner.style.cssText='position:fixed;bottom:20px;right:20px;background:#312E81;color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;align-items:center;gap:10px;';
+  banner.innerHTML=`<span>✅ ${count} saved answers restored</span><span onclick="this.parentElement.remove()" style="cursor:pointer;opacity:.6;font-size:16px">✕</span>`;
+  document.body.appendChild(banner);
+  setTimeout(()=>{ if(banner.parentElement) banner.style.opacity='0'; banner.style.transition='opacity .5s'; setTimeout(()=>banner.remove(),500); },4000);
+}
+
+function updateAllModProgress(){
+  SA_MODULES.forEach((mod,idx)=>{
+    const sn=idx+1;
+    const answered=mod.questions.filter(q=>sa_answers[q.id]!==undefined).length;
+    const el=document.getElementById(`mod_prog_${sn}`);
+    if(el) el.textContent=answered>0?`${answered}/${mod.questions.length} answered`:'';
+  });
+}
+
+function clearSavedProgress(){
+  localStorage.removeItem('sa_profile');
+  localStorage.removeItem('sa_answers');
+  localStorage.removeItem('sa_assessment_id');
+}
+
+function buildModuleSteps(){
+  const c=document.getElementById('sa-module-steps');
+  SA_MODULES.forEach((mod,idx)=>{
+    const sn=idx+1, div=document.createElement('div');
+    div.className='step-page'; div.id=`step-${sn}`;
+    div.innerHTML=buildModHTML(mod,sn); c.appendChild(div);
+  });
+}
+
+function buildModHTML(mod,sn){
+  const isLast=sn===SA_MODULES.length;
+  const prevLbl=sn===1?'← Back':`← ${SA_MODULES[sn-2].id}`;
+  const nextLbl=isLast?'See My Results →':`Next: ${SA_MODULES[sn].id} →`;
+  const qs=mod.questions.map((q,i)=>`
+    <div class="q-card" id="qcard_${q.id}">
+      <div class="q-num-tag">${mod.id} · Statement ${i+1} of ${mod.questions.length}</div>
+      <div class="q-label">${q.text}</div>
+      <div class="q-ref">📌 ${q.ref}</div>
+      <div class="rating-btns">
+        ${[1,2,3,4].map(v=>`
+          <label class="rating-btn" data-v="${v}">
+            <input type="radio" name="q_${q.id}" value="${v}" onchange="saAnswer('${q.id}',${v},'${mod.id}')">
+            <div class="rating-face">
+              <div class="rating-num">${v}</div>
+              <div class="rating-txt">${RATING_LABELS[v-1]}</div>
+            </div>
+          </label>`).join('')}
+      </div>
+    </div>`).join('');
+  return `
+    <div class="section-head">
+      <div class="section-icon" style="background:${mod.bgColor}">${mod.icon}</div>
+      <div><div class="section-title">${mod.label}</div><div class="section-sub">${mod.questions.length} confidence statements</div></div>
+      <div class="section-count">Module ${sn} of ${SA_MODULES.length}</div>
+    </div>
+    <div class="info-box blue" style="margin-bottom:14px">${mod.intro}</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#EF4444"></div>1 — Not Yet: haven't done this in SAP</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F97316"></div>2 — Learning: understand but need guidance</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#3B82F6"></div>3 — Proficient: can do independently</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#10B981"></div>4 — Expert: can explain/train others</div>
+    </div>
+    ${qs}
+    <div class="nav-bar">
+      <button class="btn btn-ghost" onclick="goTo(${sn-1})">${prevLbl}</button>
+      <div class="nav-right">
+        <span style="font-size:11px;color:var(--text3)" id="mod_prog_${sn}"></span>
+        <button class="btn btn-primary" onclick="goTo(${isLast?5:sn+1})">${nextLbl}</button>
+      </div>
+    </div>`;
+}
+
+function goTo(n){
+  // Completion gate — warn if trying to jump to results with unanswered questions
+  if(n===5){
+    const totalQ=SA_MODULES.reduce((a,m)=>a+m.questions.length,0);
+    const answered=Object.keys(sa_answers).length;
+    if(answered<totalQ){
+      const unanswered=totalQ-answered;
+      const proceed=confirm(`⚠️ You have ${unanswered} unanswered question${unanswered>1?'s':''}.\n\nFor the most accurate training plan, try to answer every statement.\n\nClick OK to see results anyway, or Cancel to go back and finish.`);
+      if(!proceed) return;
+    }
+  }
+  // Profile validation before leaving step 0
+  if(currentSAStep===0&&n>0){
+    const name=document.getElementById('sa_name').value.trim();
+    const plant=document.getElementById('sa_plant').value;
+    const role=document.getElementById('sa_role').value;
+    const hire=document.getElementById('sa_hire').value;
+    if(!name||!plant||!role||!hire){
+      alert('Please complete all required fields (Name, Plant, Role Level, and Hire Date) before continuing.');
+      return;
+    }
+    saveToLocalStorage();
+  }
+  document.querySelectorAll('.step-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`step-${n}`).classList.add('active');
+  currentSAStep=n; updateProgress(n); updateDots(n);
+  if(n===5){ buildResults(); clearSavedProgress(); }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateProgress(n){document.getElementById('progressFill').style.width=Math.round((n/(TOTAL_STEPS-1))*100)+'%';}
+function updateDots(n){document.querySelectorAll('.step-dot').forEach((d,i)=>{d.classList.remove('active','done');if(i===n)d.classList.add('active');else if(i<n)d.classList.add('done');});}
+
+function saAnswer(qId,val,modId){
+  sa_answers[qId]=val;
+  const c=document.getElementById(`qcard_${qId}`); if(c) c.classList.add('answered');
+  const mod=SA_MODULES.find(m=>m.id===modId); if(!mod) return;
+  const sn=SA_MODULES.indexOf(mod)+1;
+  const answered=mod.questions.filter(q=>sa_answers[q.id]!==undefined).length;
+  const el=document.getElementById(`mod_prog_${sn}`);
+  if(el) el.textContent=`${answered}/${mod.questions.length} answered`;
+  saveToLocalStorage();
+}
+
+function calcSen(){
+  const hd=document.getElementById('sa_hire').value, pill=document.getElementById('sa_sen_pill');
+  if(!hd){pill.style.display='none';return;}
+  const yrs=(new Date()-new Date(hd))/(1000*60*60*24*365.25);
+  const tier=yrs<1?'New Hire':yrs<3?'Developing':yrs<5?'Established':yrs<10?'Experienced':'Senior';
+  pill.textContent=`${Math.floor(yrs)} yrs ${Math.floor((yrs%1)*12)} mos · ${tier}`;
+  pill.style.display='inline-block';
+}
+function getSenTier(){const hd=document.getElementById('sa_hire').value;if(!hd)return'—';const y=(new Date()-new Date(hd))/(1000*60*60*24*365.25);return y<1?'New Hire':y<3?'Developing':y<5?'Established':y<10?'Experienced':'Senior';}
+function getYrs(){const hd=document.getElementById('sa_hire').value;if(!hd)return 0;return((new Date()-new Date(hd))/(1000*60*60*24*365.25)).toFixed(1);}
+
+function calcModuleScore(mod){
+  const vals=mod.questions.map(q=>sa_answers[q.id]).filter(v=>v!==undefined);
+  if(!vals.length) return null;
+  const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+  return{avg,pct:Math.round(((avg-1)/3)*100)};
+}
+function getScoreTier(pct){return pct>=80?'e':pct>=55?'p':pct>=25?'d':'r';}
+
+function buildResults(){
+  // Show assessment ID in export box
+  let aId='';
+  try{ aId=localStorage.getItem('sa_assessment_id')||''; }catch(e){}
+  if(!aId){ aId='SA-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).substr(2,5).toUpperCase(); try{localStorage.setItem('sa_assessment_id',aId);}catch(e){} }
+  const idEl=document.getElementById('displayAssessId'); if(idEl) idEl.textContent=aId;
+  const name=document.getElementById('sa_name').value||'—';
+  const pval=document.getElementById('sa_plant').value||'';
+  const parts=pval.split('|');
+  const plant=parts.length>1?`${parts[0]} ${parts[1]} (${parts[3]||''})`: '—';
+  document.getElementById('res_planner_line').textContent=`${name} · ${plant}`;
+
+  const modScores=SA_MODULES.map(m=>({mod:m,res:calcModuleScore(m)}));
+  const allPcts=modScores.map(s=>s.res?s.res.pct:0);
+  const overall=Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length);
+  const ot=getScoreTier(overall);
+  document.getElementById('res_overall_pct').textContent=overall+'%';
+  document.getElementById('res_tier').textContent=TIER_LABELS[ot];
+  document.getElementById('res_tier').style.color=TIER_COLORS[ot];
+
+  document.getElementById('res_module_rows').innerHTML=modScores.map(s=>{
+    const pct=s.res?s.res.pct:0, tier=getScoreTier(pct), color=s.mod.color;
+    return`<div class="mod-result-row">
+      <div class="mod-result-icon" style="background:${s.mod.bgColor}">${s.mod.icon}</div>
+      <div class="mod-result-name"><strong>${s.mod.label}</strong><span>${s.mod.id} · ${TIER_LABELS[tier]}</span></div>
+      <div class="mod-bar-bg" style="max-width:160px"><div class="mod-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="mod-result-pct" style="color:${color}">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  const allQs=SA_MODULES.flatMap(m=>m.questions.map(q=>({q,modLabel:m.label,modColor:m.color,score:sa_answers[q.id]||0}))).filter(x=>x.score>0).sort((a,b)=>a.score-b.score);
+  document.getElementById('res_dev_list').innerHTML=allQs.slice(0,4).map(x=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #F0F4F8">
+      <div style="width:22px;height:22px;border-radius:50%;background:${x.score===1?'#FEE2E2':x.score===2?'#FFF7ED':'#EFF6FF'};color:${x.score===1?'#991B1B':x.score===2?'#9A3412':'#1E40AF'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">${x.score}</div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${x.q.text}</div><div style="font-size:11px;color:${x.modColor};margin-top:3px;font-weight:600">${x.modLabel}</div></div>
+    </div>`).join('')||'<p style="font-size:13px;color:#6B7280">Great work — no major gaps identified!</p>';
+
+  drawSARadar(modScores);
+}
+
+function drawSARadar(ms){
+  const canvas=document.getElementById('sa_radar'), ctx=canvas.getContext('2d');
+  const cx=140,cy=145,r=100,n=ms.length;
+  ctx.clearRect(0,0,280,280);
+  for(let l=1;l<=3;l++){ctx.beginPath();for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2,rr=r*l/3;i===0?ctx.moveTo(cx+rr*Math.cos(a),cy+rr*Math.sin(a)):ctx.lineTo(cx+rr*Math.cos(a),cy+rr*Math.sin(a));}ctx.closePath();ctx.strokeStyle='#E0E7FF';ctx.lineWidth=1;ctx.stroke();}
+  for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));ctx.strokeStyle='#E0E7FF';ctx.lineWidth=1;ctx.stroke();}
+  ctx.beginPath();
+  ms.forEach((s,i)=>{const pct=s.res?s.res.pct/100:0,a=(i/n)*Math.PI*2-Math.PI/2,rr=r*pct;i===0?ctx.moveTo(cx+rr*Math.cos(a),cy+rr*Math.sin(a)):ctx.lineTo(cx+rr*Math.cos(a),cy+rr*Math.sin(a));});
+  ctx.closePath();ctx.fillStyle='rgba(67,56,202,.12)';ctx.fill();ctx.strokeStyle='#4338CA';ctx.lineWidth=2.5;ctx.stroke();
+  ms.forEach((s,i)=>{const pct=s.res?s.res.pct/100:0,a=(i/n)*Math.PI*2-Math.PI/2,rr=r*pct;ctx.beginPath();ctx.arc(cx+rr*Math.cos(a),cy+rr*Math.sin(a),4,0,Math.PI*2);ctx.fillStyle=s.mod.color;ctx.fill();});
+  ms.forEach((s,i)=>{const a=(i/n)*Math.PI*2-Math.PI/2,lx=cx+(r+22)*Math.cos(a),ly=cy+(r+22)*Math.sin(a);ctx.fillStyle=s.mod.color;ctx.font='bold 11px "Nunito Sans",sans-serif';ctx.textAlign='center';ctx.fillText(s.mod.id,lx,ly+4);ctx.fillStyle='#9CA3AF';ctx.font='10px "Nunito Sans",sans-serif';ctx.fillText((s.res?s.res.pct:0)+'%',lx,ly+16);});
+}
+
+function collectSAData(){
+  const pval=document.getElementById('sa_plant').value||'',parts=pval.split('|');
+  const modScores_pct={}, modScores_0to3={}, modTiers={};
+  SA_MODULES.forEach(m=>{
+    const res=calcModuleScore(m);
+    modScores_pct[m.id]  = res ? res.pct  : '';
+    modScores_0to3[m.id] = res ? parseFloat((res.avg-1).toFixed(2)) : null;
+    modTiers[m.id]       = res ? TIER_LABELS[getScoreTier(res.pct)] : '';
+  });
+  const allPcts=SA_MODULES.map(m=>{const r=calcModuleScore(m);return r?r.pct:0;});
+  const overall=Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length);
+  const scored03=SA_MODULES.map(m=>modScores_0to3[m.id]).filter(v=>v!==null&&!isNaN(v));
+  const overallAvg03=scored03.length ? parseFloat((scored03.reduce((a,b)=>a+b,0)/scored03.length).toFixed(2)) : 0;
+  const answers={};
+  SA_MODULES.forEach(m=>m.questions.forEach(q=>{answers[q.id]=sa_answers[q.id]!==undefined?sa_answers[q.id]:''}));
+  let aId='';
+  try{
+    aId=localStorage.getItem('sa_assessment_id')||'';
+    if(!aId){aId='SA-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).substr(2,5).toUpperCase();localStorage.setItem('sa_assessment_id',aId);}
+  }catch(e){ aId='SA-'+Date.now().toString(36).toUpperCase(); }
+  return{
+    assessmentId:    aId,
+    submissionDate:  new Date().toISOString().split('T')[0],
+    assessmentType:  'Self-Assessment',
+    assessmentFormat:'Self-Assessment (Online)',
+    plannerName:     document.getElementById('sa_name').value,
+    employeeId:      document.getElementById('sa_empid').value,
+    plantCode:       parts[0]||'', plantName: parts[1]||'',
+    country:         parts[2]||'', plantAbbrev: parts[3]||'',
+    roleLevel:       document.getElementById('sa_role').value,
+    hireDate:        document.getElementById('sa_hire').value,
+    yearsService:    getYrs(), seniorityTier: getSenTier(),
+    primaryFocus:    document.getElementById('sa_focus').value,
+    assignedProject: document.getElementById('sa_proj').value,
+    language:        document.getElementById('sa_lang').value,
+    moduleScores_pct:  modScores_pct,
+    modScores_0to3,
+    moduleTiers:     modTiers,
+    overallAvg03,
+    overallPct:      overall,
+    overallTier:     TIER_LABELS[getScoreTier(overall)],
+    questionAnswers: answers,
+    exportTimestamp: new Date().toISOString()
+  };
+}
+
+function exportSA_JSON(){
+  try {
+    const d  = collectSAData();
+    const fn = 'SelfAssessment_'+(d.plannerName||'Planner').replace(/\s+/g,'_')+'_'+d.plantCode+'_'+d.submissionDate+'.json';
+    triggerDownload(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),fn);
+  } catch(err) {
+    alert('Export error: '+err.message+'\n\nTip: Try a different browser (Chrome or Edge work best).');
+    console.error('exportSA_JSON error:',err);
+  }
+}
+
+function exportSA_CSV(){
+  try {
+  const d=collectSAData();
+  const qHeaders=SA_MODULES.flatMap(m=>m.questions.map(q=>q.id+'_SelfRating_1to4'));
+  const qValues =SA_MODULES.flatMap(m=>m.questions.map(q=>d.questionAnswers[q.id]||''));
+  const headers=[
+    'AssessmentDate','AssessorName','AssessmentFormat','ReassessmentDue',
+    'PlannerName','EmployeeID','PlantCode','PlantName','PlantAbbrev','Country','SAPUserID',
+    'HireDate','YearsService','SeniorityTier','TimeAtPlant',
+    'RoleLevel','SAPPriorExperience','ModuleFocus','Language','ScopeCount','BackupRole','AssignedProject',
+    'PriorTraining','LastAssessDate','ProfileNotes',
+    'Score_SD','Score_PP','Score_MM','Score_QM','Score_SAP',
+    'Tier_SD','Tier_PP','Tier_MM','Tier_QM','Tier_SAP',
+    'Notes_SD','Notes_PP','Notes_MM','Notes_QM','Notes_SAP',
+    'OverallAvgScore','OverallPct','OverallTier',
+    'FinalNotes','NextAction','ExportTimestamp',
+    ...qHeaders
+  ];
+  const row=[
+    d.submissionDate, 'Self-Assessment', 'Self-Assessment (Online)', '',
+    d.plannerName, d.employeeId,
+    d.plantCode, d.plantName, d.plantAbbrev, d.country, '',
+    d.hireDate, d.yearsService, d.seniorityTier, '',
+    d.roleLevel, '', d.primaryFocus||'', d.language, '','',
+    d.assignedProject, '','','',
+    d.modScores_0to3?.SD  ??'',
+    d.modScores_0to3?.PP  ??'',
+    d.modScores_0to3?.MM  ??'',
+    d.modScores_0to3?.QM_SAP??'',
+    '',
+    d.moduleTiers?.SD||'', d.moduleTiers?.PP||'',
+    d.moduleTiers?.MM||'', d.moduleTiers?.QM_SAP||'', '',
+    '','','','','',
+    d.overallAvg03, d.overallPct, d.overallTier,
+    '','',
+    d.exportTimestamp,
+    ...qValues
+  ].map(v=>`"${String(v??'').replace(/"/g,'""')}"`);
+  const csv=headers.join(',')+'\n'+row.join(',');
+  const fn=`SelfAssessment_${(d.plannerName||'Planner').replace(/\s+/g,'_')}_${d.plantCode}_${d.submissionDate}.csv`;
+  triggerDownload(new Blob([csv],{type:'text/csv'}),fn);
+  } catch(err) {
+    alert('Export error: '+err.message+'\n\nTip: Try a different browser (Chrome or Edge work best).');
+    console.error('exportSA_CSV error:',err);
+  }
+}
+
+function triggerDownload(blob, filename){
+  // Method 1: createObjectURL (works in all modern browsers for local HTML files)
+  try {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+    return;
+  } catch(e1) { /* fall through to Method 2 */ }
+
+  // Method 2: FileReader → data: URI fallback (works in stricter environments)
+  try {
+    const reader = new FileReader();
+    reader.onload = function() {
+      const a   = document.createElement('a');
+      a.href     = reader.result;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{ document.body.removeChild(a); }, 200);
+    };
+    reader.readAsDataURL(blob);
+    return;
+  } catch(e2) { /* fall through to Method 3 */ }
+
+  // Method 3: Open in new tab so the user can save manually
+  try {
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    return;
+  } catch(e3) {}
+
+  // Method 4: Last resort — show content in alert with copy instructions
+  const reader2 = new FileReader();
+  reader2.onload = ()=>{
+    showDownloadFallback(reader2.result, filename);
+  };
+  reader2.readAsText(blob);
+}
+
+function showDownloadFallback(content, filename) {
+  // Build a visible copy-paste modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:12px;padding:24px;max-width:600px;width:100%;max-height:80vh;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;color:#312E81">
+        📋 Save Your Results — Copy the text below
+      </div>
+      <div style="font-size:12px;color:#6B7280;line-height:1.5">
+        Your browser blocked the automatic download. Select all the text below (Ctrl+A / Cmd+A), 
+        copy it, paste into a text editor, and save as <strong>${filename}</strong>
+      </div>
+      <textarea style="flex:1;min-height:200px;font-family:monospace;font-size:10px;
+        border:1px solid #E0E7FF;border-radius:6px;padding:10px;resize:none;" 
+        readonly onclick="this.select()">${content.replace(/</g,'&lt;')}</textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button onclick="this.closest('div[style]').parentElement.remove()" 
+          style="padding:8px 20px;border-radius:8px;border:1px solid #C7D2FE;
+          background:white;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;
+          color:#4338CA">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+</script>
+</body>
+</html>
